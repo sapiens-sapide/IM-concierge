@@ -1,0 +1,223 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "f+c/QAq7GcGzdN4y9pSLL7ewEqs=",
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "9b48ece7fc373043054858f8c0d362665e866004",
+			"revisionTime": "2017-01-06T22:16:01Z"
+		},
+		{
+			"checksumSHA1": "J+kVue/HTH4sELlqMO4z0tx9DiA=",
+			"path": "github.com/boltdb/bolt",
+			"revision": "e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd",
+			"revisionTime": "2017-01-31T19:20:18Z"
+		},
+		{
+			"checksumSHA1": "OFLuU0YzByeGoqX25vEQqOisSEI=",
+			"path": "github.com/cayleygraph/cayley",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "g6dMzFlr7UlnxEkBuZuoKJW+doc=",
+			"path": "github.com/cayleygraph/cayley/clog",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "v0Ch0K2fxsfvKXhhanOgL2cf72U=",
+			"path": "github.com/cayleygraph/cayley/graph",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "YlbiTJ2KsYrPzFmrrIQRCw9UGew=",
+			"path": "github.com/cayleygraph/cayley/graph/bolt",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "9l9BfGnIg7UNkFfFOBMLb6rCEEY=",
+			"path": "github.com/cayleygraph/cayley/graph/iterator",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "KVAaA87BCnlEuE2M+jyNPts8LAI=",
+			"path": "github.com/cayleygraph/cayley/graph/memstore",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "YpWqEROYKp8ESoCZup3cIqH4MXQ=",
+			"path": "github.com/cayleygraph/cayley/graph/memstore/b",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "uSaEwxs4t4E/mO48z5EDrkzysJk=",
+			"path": "github.com/cayleygraph/cayley/graph/path",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "rQ/pcp0RJdYjzb/TvRwfFb76vzU=",
+			"path": "github.com/cayleygraph/cayley/graph/proto",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "pirLKU2YnwkFfMF1LhV++ueSg7w=",
+			"path": "github.com/cayleygraph/cayley/quad",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "4LIaMdIyy3Flk7zScRge8KmiDRY=",
+			"path": "github.com/cayleygraph/cayley/quad/pquads",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "u3nuA0oJrgi9LwV72NE4jopZFxk=",
+			"path": "github.com/cayleygraph/cayley/quad/pquads/pio",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "6qfpcep/2A0M4zWyDjNj8nDWFss=",
+			"path": "github.com/cayleygraph/cayley/query",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "T5dbUlcP+IlSjs+Muy32vjaoD1s=",
+			"path": "github.com/cayleygraph/cayley/query/graphql",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "TzjAFRU7gxXAA9OqZNa+ew9pmx8=",
+			"path": "github.com/cayleygraph/cayley/voc",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "aZjFrTpgFe0wciwhxYbv6zwQXHg=",
+			"path": "github.com/cayleygraph/cayley/voc/schema",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "aM5YAgWyIm+kgH3whZzP6VvHOVE=",
+			"path": "github.com/cayleygraph/cayley/writer",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "q/J55z9F7JwiIQ6pHWg3kHRi+I8=",
+			"path": "github.com/dennwc/graphql/gqlerrors",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "w2am2pAT9qABGiFPfqImZXI/IXQ=",
+			"path": "github.com/dennwc/graphql/language/ast",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "VfsFMRkBlWp/Qw/AxKplzZz+TQw=",
+			"path": "github.com/dennwc/graphql/language/kinds",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "+wBv550zt9lQBFWMifHJlCXyAZQ=",
+			"path": "github.com/dennwc/graphql/language/lexer",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "NaDgfwSqjgpd0lHUpRmvJtv3Q9E=",
+			"path": "github.com/dennwc/graphql/language/location",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "QTWb/C0FgCfP0xT+7Ek5Z9GpMsA=",
+			"path": "github.com/dennwc/graphql/language/parser",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "ynTIKec4urkXOF2rhzSx7FcHbn0=",
+			"path": "github.com/dennwc/graphql/language/source",
+			"revision": "fd5c4aa13f2119414084f229600de0d73f174436",
+			"revisionTime": "2017-02-13T09:00:08Z"
+		},
+		{
+			"checksumSHA1": "KNyoFOwJJ2A4Jdsf/5E80sfPfqw=",
+			"path": "github.com/gogo/protobuf/gogoproto",
+			"revision": "83faaee7bbbdf0c59310ec67d340bc0cbe77053f",
+			"revisionTime": "2017-02-26T19:25:51Z"
+		},
+		{
+			"checksumSHA1": "6ZxSmrIx3Jd15aou16oG0HPylP4=",
+			"path": "github.com/gogo/protobuf/proto",
+			"revision": "83faaee7bbbdf0c59310ec67d340bc0cbe77053f",
+			"revisionTime": "2017-02-26T19:25:51Z"
+		},
+		{
+			"checksumSHA1": "wg7MHG+Fuc0ZGWFIlAZJulPxR2s=",
+			"path": "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
+			"revision": "83faaee7bbbdf0c59310ec67d340bc0cbe77053f",
+			"revisionTime": "2017-02-26T19:25:51Z"
+		},
+		{
+			"checksumSHA1": "Se195FlZ160eaEk/uVx4KdTPSxU=",
+			"path": "github.com/pborman/uuid",
+			"revision": "1b00554d822231195d1babd97ff4a781231955c9",
+			"revisionTime": "2017-01-12T15:04:04Z"
+		},
+		{
+			"checksumSHA1": "2dfoF4MPMJbrNNAlaBQqSCv3PFU=",
+			"path": "github.com/sapiens-sapide/chat-concierge",
+			"revision": "644cd4739edb21cf206ead850b733d4df376af3d",
+			"revisionTime": "2017-02-27T15:05:27Z"
+		},
+		{
+			"checksumSHA1": "R5WsnsRdUEwWruxLSW04ks1mWlA=",
+			"path": "github.com/sapiens-sapide/chat-concierge/cmd/chat-concierge",
+			"revision": "644cd4739edb21cf206ead850b733d4df376af3d",
+			"revisionTime": "2017-02-27T15:05:27Z"
+		},
+		{
+			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",
+			"path": "github.com/satori/go.uuid",
+			"revision": "b061729afc07e77a8aa4fad0a2fd840958f1942a",
+			"revisionTime": "2016-09-27T10:08:44Z"
+		},
+		{
+			"checksumSHA1": "R0hwmWSA3CEsjUdNqP9oBK798tk=",
+			"path": "github.com/thoj/go-ircevent",
+			"revision": "1b0acb5f2f1b615cfbd4b9f91abb14cb39a18769",
+			"revisionTime": "2016-12-08T08:29:58Z"
+		},
+		{
+			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
+			"path": "golang.org/x/net/context",
+			"revision": "4a1c855a052c2bad0e019ccfe8193a33d77adf5e",
+			"revisionTime": "2016-12-06T00:22:42Z"
+		},
+		{
+			"checksumSHA1": "uTQtOqR0ePMMcvuvAIksiIZxhqU=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
+			"revisionTime": "2016-12-14T18:38:57Z"
+		}
+	],
+	"rootPath": "github.com/sapiens-sapide/chat-concierge"
+}
