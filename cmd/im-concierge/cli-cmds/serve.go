@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/flashmob/go-guerrilla"
 	imc "github.com/sapiens-sapide/IM-concierge"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -52,7 +51,7 @@ func sigHandler() {
 			if err != nil {
 				log.WithError(err).Error("Error while ReadConfig (reload)")
 			} else {
-				log.Infof("Configuration is reloaded at %s", guerrilla.ConfigLoadTime)
+				//TODO
 			}
 			// TODO: reinitialize
 		} else if sig == syscall.SIGTERM || sig == syscall.SIGQUIT || sig == syscall.SIGINT {
