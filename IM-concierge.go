@@ -1,4 +1,4 @@
-package chat_concierge
+package IM_concierge
 
 import (
 	"github.com/cayleygraph/cayley"
@@ -25,9 +25,12 @@ const (
 	IRCnickname
 )
 
-var connected map[string]Recipient
-var Store *cayley.Handle
-var Session *graphql.Session
+var (
+	Config  ConciergeConfig
+	Users   map[string]Recipient
+	Store   *cayley.Handle
+	Session *graphql.Session
+)
 
 type Message struct {
 	Attachments  []Attachment
@@ -68,4 +71,12 @@ type Quad struct {
 	Predicate string
 	Object    string
 	Label     string
+}
+
+type ConciergeConfig struct {
+	IRCserver   string `mapstructure:"irc_server"`
+	IRCChannel  string `mapstructure:"irc_channel"`
+	IRCUser     string `mapstructure:"irc_user"`
+	IRCNickname string `mapstructure:"irc_nickname"`
+	CayleyAPI   string `mapstructure:"cayley_api_path"`
 }

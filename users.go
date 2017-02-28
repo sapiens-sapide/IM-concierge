@@ -1,29 +1,60 @@
-package chat_concierge
+package IM_concierge
 
 import (
+	"fmt"
 	"github.com/thoj/go-ircevent"
 	"strings"
-	"fmt"
 )
 
 func HandleUsersList(conn *irc.Connection, e *irc.Event) {
-	users := strings.Split(e.Message(), " ")
-	connected = make(map[string]Recipient)
-	for _, user := range users {
-		connected[user] = Recipient{
-			Type: IRCnickname,
-			DisplayName: user,
+	switch e.Code {
+	case "353":
+		//users list sent at connection
+		users := strings.Split(e.Message(), " ")
+		for _, user := range users {
+			var clean_nick string
+			switch user[0] {
+			case '~', '@':
+				clean_nick = user[1:]
+			default:
+				clean_nick = user
+			}
+			Users[clean_nick] = Recipient{
+				Type:        IRCnickname,
+				DisplayName: clean_nick,
+			}
+		}
+		for _, rcpt := range Users {
+			conn.Who(rcpt.DisplayName)
+		}
+	case "JOIN":
+		//a user is joining the channel
+		var clean_nick string
+		switch e.Nick[0] {
+		case '~', '@':
+			clean_nick = e.Nick[1:]
+		default:
+			clean_nick = e.Nick
+		}
+		if _, ok := Users[clean_nick]; !ok {
+			Users[clean_nick] = Recipient{
+				Type:        IRCnickname,
+				DisplayName: clean_nick,
+			}
+			conn.Who(clean_nick)
 		}
 	}
-	for _, rcpt := range connected {
-		conn.Who(rcpt.DisplayName)
-	}
-	fmt.Printf("connected : %+v", connected)
+
+	fmt.Printf("Users list : %+v\n", Users)
 }
 
-func HandleWhoReply (e *irc.Event) {
-	rcpt := connected[e.Arguments[5]]
+func HandleWhoReply(e *irc.Event) {
+	rcpt := Users[e.Arguments[5]]
 	rcpt.Identifier = strings.Split(e.Message(), " ")[1]
-	connected[e.Arguments[5]] = rcpt
-	fmt.Printf("Connected : %+v\n", connected)
+	Users[e.Arguments[5]] = rcpt
+	fmt.Printf("Users list : %+v\n", Users)
+}
+
+func HandleLeavingUser(e *irc.Event) {
+
 }

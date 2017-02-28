@@ -184,13 +184,13 @@
 		},
 		{
 			"checksumSHA1": "2dfoF4MPMJbrNNAlaBQqSCv3PFU=",
-			"path": "github.com/sapiens-sapide/chat-concierge",
+			"path": "github.com/sapiens-sapide/IM-concierge",
 			"revision": "644cd4739edb21cf206ead850b733d4df376af3d",
 			"revisionTime": "2017-02-27T15:05:27Z"
 		},
 		{
 			"checksumSHA1": "R5WsnsRdUEwWruxLSW04ks1mWlA=",
-			"path": "github.com/sapiens-sapide/chat-concierge/cmd/chat-concierge",
+			"path": "github.com/sapiens-sapide/IM-concierge/cmd/IM-concierge",
 			"revision": "644cd4739edb21cf206ead850b733d4df376af3d",
 			"revisionTime": "2017-02-27T15:05:27Z"
 		},
@@ -219,5 +219,5 @@
 			"revisionTime": "2016-12-14T18:38:57Z"
 		}
 	],
-	"rootPath": "github.com/sapiens-sapide/chat-concierge"
+	"rootPath": "github.com/sapiens-sapide/IM-concierge"
 }
