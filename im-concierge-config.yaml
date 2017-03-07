@@ -1,5 +1,5 @@
 irc_server: barjavel.freenode.net:7000
-irc_channel: "#caliopen"
+irc_channel: "#im-concierge-playground"
 irc_user: "im-concierge"
 irc_nickname: "stansab-imc"
 cayley_api_path: http://127.0.0.1:64210/api/v1/ # full path with trailing slash. ie: http://127.0.0.1:64210/api/v1/

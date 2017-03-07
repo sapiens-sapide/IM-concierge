@@ -99,8 +99,32 @@
 			"revisionTime": "2017-02-23T21:10:03Z"
 		},
 		{
+			"checksumSHA1": "Gc4nhYEBKrA7re8y8NaGVZ4jCXQ=",
+			"path": "github.com/cayleygraph/cayley/schema",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
 			"checksumSHA1": "TzjAFRU7gxXAA9OqZNa+ew9pmx8=",
 			"path": "github.com/cayleygraph/cayley/voc",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "I7DZ8WTwt9nJDnOY5DMKZeLoHiY=",
+			"path": "github.com/cayleygraph/cayley/voc/core",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "pb3w2q6tAWAlrntG8W9SEgr7hA0=",
+			"path": "github.com/cayleygraph/cayley/voc/rdf",
+			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
+			"revisionTime": "2017-02-23T21:10:03Z"
+		},
+		{
+			"checksumSHA1": "hD630A42gPg5zeVtA6Hxq/Qkd9E=",
+			"path": "github.com/cayleygraph/cayley/voc/rdfs",
 			"revision": "4f3d5333f6dc34a93ae27f0dc6be340e896cac75",
 			"revisionTime": "2017-02-23T21:10:03Z"
 		},
@@ -165,6 +189,24 @@
 			"revisionTime": "2016-11-02T19:13:10Z"
 		},
 		{
+			"checksumSHA1": "RsNwOto8G8aXIiRrlFn4dtU9q/g=",
+			"path": "github.com/gin-gonic/gin",
+			"revision": "e2212d40c62a98b388a5eb48ecbdcf88534688ba",
+			"revisionTime": "2016-12-04T22:13:08Z"
+		},
+		{
+			"checksumSHA1": "UsILDoIB2S7ra+w2fMdb85mX3HM=",
+			"path": "github.com/gin-gonic/gin/binding",
+			"revision": "e2212d40c62a98b388a5eb48ecbdcf88534688ba",
+			"revisionTime": "2016-12-04T22:13:08Z"
+		},
+		{
+			"checksumSHA1": "PHv9FNb7YavJWtAHcY6ZgXmkmHs=",
+			"path": "github.com/gin-gonic/gin/render",
+			"revision": "e2212d40c62a98b388a5eb48ecbdcf88534688ba",
+			"revisionTime": "2016-12-04T22:13:08Z"
+		},
+		{
 			"checksumSHA1": "KNyoFOwJJ2A4Jdsf/5E80sfPfqw=",
 			"path": "github.com/gogo/protobuf/gogoproto",
 			"revision": "83faaee7bbbdf0c59310ec67d340bc0cbe77053f",
@@ -181,6 +223,12 @@
 			"path": "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
 			"revision": "83faaee7bbbdf0c59310ec67d340bc0cbe77053f",
 			"revisionTime": "2017-02-26T19:25:51Z"
+		},
+		{
+			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "8ee79997227bf9b34611aee7946ae64735e6fd93",
+			"revisionTime": "2016-11-17T03:31:26Z"
 		},
 		{
 			"checksumSHA1": "Ok3Csn6Voou7pQT6Dv2mkwpqFtw=",
@@ -247,6 +295,18 @@
 			"path": "github.com/magiconair/properties",
 			"revision": "b3b15ef068fd0b17ddf408a23669f20811d194d2",
 			"revisionTime": "2017-01-13T09:48:12Z"
+		},
+		{
+			"checksumSHA1": "b0T0Hzd+zYk+OCDTFMps+jwa/nY=",
+			"path": "github.com/manucorporat/sse",
+			"revision": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d",
+			"revisionTime": "2016-01-26T18:01:36Z"
+		},
+		{
+			"checksumSHA1": "Jyv1TH1YHrCVewmVE8FgSh1+92s=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "dda3de49cbfcec471bd7a70e6cc01fcc3ff90109",
+			"revisionTime": "2017-02-16T23:59:08Z"
 		},
 		{
 			"checksumSHA1": "wTMmmuol+KHkz9EwVKaOjd2O4cs=",
@@ -373,6 +433,12 @@
 			"path": "golang.org/x/text/unicode/norm",
 			"revision": "0ad425fe45e885577bef05dc1c50f72e33188b16",
 			"revisionTime": "2017-02-21T16:03:50Z"
+		},
+		{
+			"checksumSHA1": "39V1idWER42Lmcmg2Uy40wMzOlo=",
+			"path": "gopkg.in/go-playground/validator.v8",
+			"revision": "5f57d2222ad794d0dffb07e664ea05e2ee07d60c",
+			"revisionTime": "2016-07-18T13:41:25Z"
 		},
 		{
 			"checksumSHA1": "0KwOlQV1dNUh9X8t+5s7nX5bqfk=",
