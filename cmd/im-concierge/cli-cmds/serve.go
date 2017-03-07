@@ -11,6 +11,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"github.com/cayleygraph/cayley"
+	"github.com/cayleygraph/cayley/graph"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -95,6 +98,17 @@ func serve(cmd *cobra.Command, args []string) {
 		log.WithError(err).Fatalln("cayley.NewGraph error")
 	}
 
+	//init cayley db
+	if _, err = os.Stat("concierge.cayleyDB"); os.IsNotExist(err) {
+		os.Create("concierge.cayleyDB")
+		// Initialize the database
+		log.Infoln("initializing db")
+		graph.InitQuadStore("bolt", "concierge.cayleyDB", nil)
+	}
+
+	imc.Store, err = cayley.NewGraph("bolt", "concierge.cayleyDB", nil)
+
+	//register our IRC handlers
 	irccon := irc.IRC(cmdConfig.IRCNickname, cmdConfig.IRCUser)
 	irccon.VerboseCallbackHandler = false
 	irccon.Debug = false
@@ -119,6 +133,23 @@ func serve(cmd *cobra.Command, args []string) {
 	irccon.GetNick()
 
 	go irccon.Loop()
+
+	//start http server
+	router := gin.Default()
+	// adds our middlewares
+
+	// adds our routes and handlers
+	api := router.Group("/messages")
+	api.GET("/", imc.AllMessagesHandler)
+
+	// listens
+	addr := "localhost:8080"
+	err = router.Run(addr)
+	if err != nil {
+		log.WithError(err).Warn("unable to start gin server")
+	}
+
+	//wait for system signals
 	sigHandler()
 }
 

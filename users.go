@@ -20,7 +20,6 @@ func HandleUsersList(conn *irc.Connection, e *irc.Event) {
 				clean_nick = user
 			}
 			Users[clean_nick] = Recipient{
-				Type:        IRCnickname,
 				DisplayName: clean_nick,
 			}
 		}
@@ -38,7 +37,6 @@ func HandleUsersList(conn *irc.Connection, e *irc.Event) {
 		}
 		if _, ok := Users[clean_nick]; !ok {
 			Users[clean_nick] = Recipient{
-				Type:        IRCnickname,
 				DisplayName: clean_nick,
 			}
 			conn.Who(clean_nick)
@@ -52,7 +50,6 @@ func HandleWhoReply(e *irc.Event) {
 	rcpt := Users[e.Arguments[5]]
 	rcpt.Identifier = strings.Split(e.Message(), " ")[1]
 	Users[e.Arguments[5]] = rcpt
-	fmt.Printf("Users list : %+v\n", Users)
 }
 
 func HandleLeavingUser(e *irc.Event) {

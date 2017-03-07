@@ -1,8 +1,6 @@
 package IM_concierge
 
 import (
-	"bytes"
-	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/cayleygraph/cayley"
 	"github.com/cayleygraph/cayley/graph"
@@ -10,8 +8,9 @@ import (
 	"github.com/cayleygraph/cayley/query/graphql"
 	"github.com/satori/go.uuid"
 	"github.com/thoj/go-ircevent"
-	"net/http"
 	"time"
+	"github.com/cayleygraph/cayley/quad"
+	"github.com/cayleygraph/cayley/schema"
 )
 
 func HandleMessage(e *irc.Event) {
@@ -42,12 +41,30 @@ func HandleMessage(e *irc.Event) {
 			Config.IRCChannel,
 			"property",
 		})
-	var json_quads []byte
-	json_quads, _ = json.Marshal(quads)
-	http_body := bytes.NewReader(json_quads)
-	_, err := http.Post(Config.CayleyAPI+"write", "application/json", http_body)
+	t := time.Now()
+	/*from := []Recipient{
+	Recipient{
+		DisplayName: e.Nick,
+		Identifier: e.User,
+	},
+	}*/
+	msg := Message{
+		Id: quad.IRI(msg_id.String()),
+		From: []string{e.Nick},
+		Body: e.Message(),
+		Year: t.Year(),
+		Month: int(t.Month()),
+		Day: t.Day(),
+		Hour: t.Hour(),
+		Minute: t.Minute(),
+		Second: t.Second(),
+		Nano: t.Nanosecond(),
+		DateString: t.Format(time.RFC3339Nano),
+	}
+	qw := graph.NewWriter(Store)
+	_, err := schema.WriteAsQuads(qw, msg)
 	if err != nil {
-		log.Warnf("Error : %v", err)
+		log.Warnf("Error [WriteAsQuads] : %v", err)
 	}
 }
 
