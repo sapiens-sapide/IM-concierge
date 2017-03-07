@@ -14,8 +14,6 @@ import (
 func AllMessagesHandler(ctx *gin.Context) {
 	var messages []Message
 	err := schema.LoadTo(nil, Store, &messages)
-	log.Println("aiens")
-
 	if err != nil {
 		log.Warnf("Error [LoadTo] : %v", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError)

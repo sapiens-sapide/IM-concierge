@@ -11,9 +11,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/cayleygraph/cayley"
 	"github.com/cayleygraph/cayley/graph"
 	"github.com/gin-gonic/gin"
+	"github.com/cayleygraph/cayley"
 )
 
 var (
@@ -144,10 +144,12 @@ func serve(cmd *cobra.Command, args []string) {
 
 	// listens
 	addr := "localhost:8080"
-	err = router.Run(addr)
-	if err != nil {
-		log.WithError(err).Warn("unable to start gin server")
-	}
+	go func() {
+		err = router.Run(addr)
+		if err != nil {
+			log.WithError(err).Warn("unable to start gin server")
+		}
+	}()
 
 	//wait for system signals
 	sigHandler()
