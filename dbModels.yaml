@@ -1,0 +1,12 @@
+Identity:
+  id : string
+  displayName : string # "display-name" for email address or "nickname" for IRC
+  identifier : string # email addres or full user's "real name" for IRC
+
+User:
+  id: string
+  identities : [Identity.id]
+
+Channel:
+  Name: string
+  KnownUsers: [User.id]

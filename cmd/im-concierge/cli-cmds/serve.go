@@ -1,19 +1,18 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	imc "github.com/sapiens-sapide/IM-concierge"
+	"github.com/cayleygraph/cayley"
+	"github.com/cayleygraph/cayley/graph"
+	"github.com/gin-gonic/gin"
+	"github.com/sapiens-sapide/IM-concierge/front"
+	"github.com/sapiens-sapide/IM-concierge/imc"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/thoj/go-ircevent"
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/cayleygraph/cayley/graph"
-	"github.com/gin-gonic/gin"
-	"github.com/cayleygraph/cayley"
 )
 
 var (
@@ -108,39 +107,44 @@ func serve(cmd *cobra.Command, args []string) {
 
 	imc.Store, err = cayley.NewGraph("bolt", "concierge.cayleyDB", nil)
 
-	//register our IRC handlers
-	irccon := irc.IRC(cmdConfig.IRCNickname, cmdConfig.IRCUser)
-	irccon.VerboseCallbackHandler = false
-	irccon.Debug = false
-	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	irccon.AddCallback("001", func(e *irc.Event) {
-		irccon.Join(cmdConfig.IRCChannel)
-	})
-	irccon.AddCallback("353", func(e *irc.Event) {
-		imc.HandleUsersList(irccon, e)
-	})
-	irccon.AddCallback("JOIN", func(e *irc.Event) {
-		imc.HandleUsersList(irccon, e)
-	})
-	irccon.AddCallback("352", imc.HandleWhoReply)
-	irccon.AddCallback("PRIVMSG", imc.HandleMessage)
-	err = irccon.Connect(cmdConfig.IRCserver)
-	if err != nil {
-		fmt.Printf("Err %s", err)
-		return
-	}
-	irccon.GetNick()
+	//start IRC handler
+	/*
+		irccon := irc.IRC(cmdConfig.IRCNickname, cmdConfig.IRCUser)
+		irccon.VerboseCallbackHandler = false
+		irccon.Debug = false
+		irccon.UseTLS = true
+		irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		irccon.AddCallback("001", func(e *irc.Event) {
+			irccon.Join(cmdConfig.IRCChannel)
+		})
+		irccon.AddCallback("353", func(e *irc.Event) {
+			imc.HandleUsersList(irccon, e)
+		})
+		irccon.AddCallback("JOIN", func(e *irc.Event) {
+			imc.HandleUsersList(irccon, e)
+		})
+		irccon.AddCallback("352", imc.HandleWhoReply)
+		irccon.AddCallback("PRIVMSG", imc.HandleMessage)
+		err = irccon.Connect(cmdConfig.IRCserver)
+		if err != nil {
+			fmt.Printf("Err %s", err)
+			return
+		}
+		irccon.GetNick()
 
-	go irccon.Loop()
-
-	//start http server
+		go irccon.Loop()
+	*/
+	//start http front server
 	router := gin.Default()
 	// adds our middlewares
 
 	// adds our routes and handlers
 	api := router.Group("/messages")
-	api.GET("/", imc.AllMessagesHandler)
+	api.GET("/", front.AllMessagesHandler)
+	api.GET("/ws", func(c *gin.Context) {
+		front.WsHandler(c.Writer, c.Request)
+	})
+	router.Static("/static/", "../../front/static")
 
 	// listens
 	addr := "localhost:8080"

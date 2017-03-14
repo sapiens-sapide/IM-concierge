@@ -1,4 +1,4 @@
-package IM_concierge
+package imc
 
 import (
 	"fmt"

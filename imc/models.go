@@ -1,4 +1,4 @@
-package IM_concierge
+package imc
 
 import (
 	"github.com/cayleygraph/cayley"
@@ -48,19 +48,19 @@ var (
 type Message struct {
 	// dummy field to enforce all object to have a <id> <rdf:type> <ex:Message> relation
 	// means nothing for Go itself
-	rdfType     struct{}     `quad:"@type > Message"`
-	Body        string       `json:"body"`
-	From        []string     `json:"from"`
-	Id          quad.IRI     `json:"@id"`
+	rdfType struct{} `quad:"@type > Message"`
+	Body    string   `json:"body"`
+	From    []string `json:"from"`
+	Id      quad.IRI `json:"@id"`
 	//date fields
-	Year       int       `json:"year"`
-	Month      int       `json:"month"`
-	Day        int       `json:"day"`
-	Hour       int       `json:"hour"`
-	Minute     int       `json:"minute"`
-	Second     int       `json:"second"`
-	Nano       int       `json:"nano"`
-	DateString string    `json:"full_date"`
+	Year       int    `json:"year"`
+	Month      int    `json:"month"`
+	Day        int    `json:"day"`
+	Hour       int    `json:"hour"`
+	Minute     int    `json:"minute"`
+	Second     int    `json:"second"`
+	Nano       int    `json:"nano"`
+	DateString string `json:"full_date"`
 }
 type Message_all struct {
 	// dummy field to enforce all object to have a <id> <rdf:type> <ex:Message> relation
@@ -114,10 +114,10 @@ type Identity struct {
 type Recipient struct {
 	// dummy field to enforce all object to have a <id> <rdf:type> <ex:Message> relation
 	// means nothing for Go itself
-	rdfType     struct{}      `quad:"@type > Recipient"`
-	DisplayName string        `json:"display_name"`
-	Id          quad.IRI      `json:"@id"`
-	Identifier  string        `json:"identifier"`
+	rdfType     struct{} `quad:"@type > Recipient"`
+	DisplayName string   `json:"display_name"`
+	Id          quad.IRI `json:"@id"`
+	Identifier  string   `json:"identifier"`
 }
 
 type Recipient_all struct {
@@ -179,14 +179,15 @@ type By func(m1, m2 *Message) bool
 func (by By) Sort(messages []Message) {
 	ps := &messageSorter{
 		messages: messages,
-		by:      by, // The Sort method's receiver is the function (closure) that defines the sort order.
+		by:       by, // The Sort method's receiver is the function (closure) that defines the sort order.
 	}
 	sort.Sort(ps)
 }
+
 // planetSorter joins a By function and a slice of Planets to be sorted.
 type messageSorter struct {
 	messages []Message
-	by      func(m1, m2 *Message) bool // Closure used in the Less method.
+	by       func(m1, m2 *Message) bool // Closure used in the Less method.
 }
 
 // Len is part of sort.Interface.
