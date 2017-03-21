@@ -3,11 +3,8 @@ package cmd
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/cayleygraph/cayley"
-	"github.com/cayleygraph/cayley/graph"
-	"github.com/gin-gonic/gin"
-	"github.com/sapiens-sapide/IM-concierge/front"
 	"github.com/sapiens-sapide/IM-concierge/imc"
+	m "github.com/sapiens-sapide/IM-concierge/models"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -20,12 +17,12 @@ var (
 	configFile    string
 	pidFile       string
 	signalChannel chan os.Signal // for trapping SIG_HUP
-	cmdConfig     imc.ConciergeConfig
+	cmdConfig     m.ConciergeConfig
 
 	serveCmd = &cobra.Command{
-		Use:   "serve",
+		Use:   "run",
 		Short: "starts IM-concierge server",
-		Run:   serve,
+		Run:   run,
 	}
 )
 
@@ -39,7 +36,7 @@ func init() {
 
 	RootCmd.AddCommand(serveCmd)
 	signalChannel = make(chan os.Signal, 1)
-	cmdConfig = imc.ConciergeConfig{}
+	cmdConfig = m.ConciergeConfig{}
 }
 
 func sigHandler() {
@@ -58,7 +55,10 @@ func sigHandler() {
 			// TODO: reinitialize
 		} else if sig == syscall.SIGTERM || sig == syscall.SIGQUIT || sig == syscall.SIGINT {
 			log.Infof("Shutdown signal caught")
-			//TODO: graceful shutdown
+			err := imc.CareTaker.Backend.Shutdown()
+			if err != nil {
+				log.WithError(err).Warnf("error when shutingdown backend")
+			}
 			log.Infof("Shutdown completed, exiting.")
 			os.Exit(0)
 		} else {
@@ -67,13 +67,13 @@ func sigHandler() {
 	}
 }
 
-func serve(cmd *cobra.Command, args []string) {
+func run(cmd *cobra.Command, args []string) {
 	err := readConfig(&cmdConfig)
 	if err != nil {
 		log.WithError(err).Fatal("Error while reading config")
 	}
 	imc.Config = cmdConfig
-	imc.Users = make(map[string]imc.Recipient)
+	imc.Users = make(map[string]m.Recipient)
 	// Write out our PID
 	if len(pidFile) > 0 {
 		if f, err := os.Create(pidFile); err == nil {
@@ -97,70 +97,29 @@ func serve(cmd *cobra.Command, args []string) {
 		log.WithError(err).Fatalln("cayley.NewGraph error")
 	}
 
-	//init cayley db
-	if _, err = os.Stat("concierge.cayleyDB"); os.IsNotExist(err) {
-		os.Create("concierge.cayleyDB")
-		// Initialize the database
-		log.Infoln("initializing db")
-		graph.InitQuadStore("bolt", "concierge.cayleyDB", nil)
+	// init our concierge
+	_, err = imc.NewCareTaker()
+	if err != nil {
+		log.WithError(err).Fatalf("start of CareTaker failed")
+	}
+	//start IRC handler
+	err = imc.StartIRCservice()
+	if err != nil {
+		log.WithError(err).Fatalf("start of IRCservice failed")
 	}
 
-	imc.Store, err = cayley.NewGraph("bolt", "concierge.cayleyDB", nil)
-
-	//start IRC handler
-	/*
-		irccon := irc.IRC(cmdConfig.IRCNickname, cmdConfig.IRCUser)
-		irccon.VerboseCallbackHandler = false
-		irccon.Debug = false
-		irccon.UseTLS = true
-		irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-		irccon.AddCallback("001", func(e *irc.Event) {
-			irccon.Join(cmdConfig.IRCChannel)
-		})
-		irccon.AddCallback("353", func(e *irc.Event) {
-			imc.HandleUsersList(irccon, e)
-		})
-		irccon.AddCallback("JOIN", func(e *irc.Event) {
-			imc.HandleUsersList(irccon, e)
-		})
-		irccon.AddCallback("352", imc.HandleWhoReply)
-		irccon.AddCallback("PRIVMSG", imc.HandleMessage)
-		err = irccon.Connect(cmdConfig.IRCserver)
-		if err != nil {
-			fmt.Printf("Err %s", err)
-			return
-		}
-		irccon.GetNick()
-
-		go irccon.Loop()
-	*/
 	//start http front server
-	router := gin.Default()
-	// adds our middlewares
-
-	// adds our routes and handlers
-	api := router.Group("/messages")
-	api.GET("/", front.AllMessagesHandler)
-	api.GET("/ws", func(c *gin.Context) {
-		front.WsHandler(c.Writer, c.Request)
-	})
-	router.Static("/static/", "../../front/static")
-
-	// listens
-	addr := "localhost:8080"
-	go func() {
-		err = router.Run(addr)
-		if err != nil {
-			log.WithError(err).Warn("unable to start gin server")
-		}
-	}()
+	err = imc.StartFrontServer()
+	if err != nil {
+		log.WithError(err).Fatalf("start of front server failed")
+	}
 
 	//wait for system signals
 	sigHandler()
 }
 
 // ReadConfig which should be called at startup, or when a SIG_HUP is caught
-func readConfig(config *imc.ConciergeConfig) error {
+func readConfig(config *m.ConciergeConfig) error {
 	// load in the main config. Reading from YAML, TOML, JSON, HCL and Java properties config files
 	v := viper.New()
 	v.SetConfigName(configFile) // name of config file (without extension)

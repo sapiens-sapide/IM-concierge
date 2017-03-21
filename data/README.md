@@ -1,0 +1,1 @@
+eliasdb's files storage will be written in this folder.

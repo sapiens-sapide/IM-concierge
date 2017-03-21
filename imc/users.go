@@ -2,6 +2,7 @@ package imc
 
 import (
 	"fmt"
+	m "github.com/sapiens-sapide/IM-concierge/models"
 	"github.com/thoj/go-ircevent"
 	"strings"
 )
@@ -19,7 +20,7 @@ func HandleUsersList(conn *irc.Connection, e *irc.Event) {
 			default:
 				clean_nick = user
 			}
-			Users[clean_nick] = Recipient{
+			Users[clean_nick] = m.Recipient{
 				DisplayName: clean_nick,
 			}
 		}
@@ -36,7 +37,7 @@ func HandleUsersList(conn *irc.Connection, e *irc.Event) {
 			clean_nick = e.Nick
 		}
 		if _, ok := Users[clean_nick]; !ok {
-			Users[clean_nick] = Recipient{
+			Users[clean_nick] = m.Recipient{
 				DisplayName: clean_nick,
 			}
 			conn.Who(clean_nick)

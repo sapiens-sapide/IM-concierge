@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Last messages</title>
+    <link rel="stylesheet" type="text/css" href="/static/assets/SemanticUI/semantic.css">
+    <script src="/static/scripts/messages.js"></script>
+</head>
+<body>
+    <div class="ui fluid container">
+    <div class="ui feed" id="div-feed">
+    {{range .}}
+           <div class="event" style="font-style: italic;">
+                <div class="content">
+                    <div class="summary">
+                        <div class="date">{{weekdayDateStr .Date}}</div>
+                        <a class="user">{{.From}}&nbsp;:&nbsp;</a>
+                        {{.Body}}
+                    </div>
+                </div>
+            </div>
+    {{end}}
+    </div>
+    </div>
+</body>
+</html>
