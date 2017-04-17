@@ -1,48 +1,52 @@
-package imc
+// Websocket IO with clients
+package web_api
 
 import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	m "github.com/sapiens-sapide/IM-concierge/models"
+	ent "github.com/sapiens-sapide/IM-concierge/entities"
 	"net/http"
 	"time"
 )
 
-// handler for /messages route
-func (c *Concierge) AllMessagesHandler(ctx *gin.Context) {
-	messages, err := c.Backend.ListMessagesByDate("#im-concierge-playground", time.Now().AddDate(0, 0, -defaultMessagesDaysAge))
-	if err != nil {
-		log.WithError(err).Warnln("[FrontServer] : error when calling Backend.ListMessagesByDate")
-	}
+const (
+	// Time allowed to write a message to the ws peer.
+	writeWait = 10 * time.Second
 
-	ctx.HTML(http.StatusOK, "messages.tmpl", messages)
-}
+	// Time allowed to read the next pong message from the ws peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to ws peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Maximum message size allowed from ws peer.
+	maxMessageSize = 512
+)
 
 // handler for route /ws, in charge of upgrading client to websocket protocol
-func (c *Concierge) WsHandler(w http.ResponseWriter, r *http.Request) {
+func (fs *FrontServer) WsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.WithError(err)
 		return
 	}
-	c.ClientsMux.Lock()
+	fs.ClientsMux.Lock()
 	newClient := FrontClient{
 		Websocket:   conn,
-		Identity:    m.Identity{},
+		Identity:    ent.Identity{},
 		FromClient:  make(chan []byte),
 		ToClient:    make(chan []byte),
 		LeaveClient: make(chan bool),
-		ClientPos:   len(c.Clients),
+		ClientPos:   len(fs.Clients),
 	}
-	c.Clients = append(c.Clients, &newClient)
-	go newClient.WsClientHandler(c.PopClient)
-	c.ClientsMux.Unlock()
+	fs.Clients = append(fs.Clients, &newClient)
+	go fs.WsClientHandler(&newClient)
+	fs.ClientsMux.Unlock()
 }
 
-// handles communications with connected clients upgraded to websocket protocol
-func (client *FrontClient) WsClientHandler(popChan chan int) {
+// handles ws communications with connected clients already upgraded to websocket protocol
+func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 	client.Websocket.SetReadLimit(maxMessageSize)
 	client.Websocket.SetReadDeadline(time.Now().Add(pongWait))
 	client.Websocket.SetPongHandler(func(string) error { client.Websocket.SetReadDeadline(time.Now().Add(pongWait)); return nil })
@@ -50,7 +54,7 @@ func (client *FrontClient) WsClientHandler(popChan chan int) {
 		close(client.FromClient)
 		close(client.ToClient)
 		client.Websocket.Close()
-		popChan <- client.ClientPos // remove this client from concierge's clients array
+		fs.PopClient <- client.ClientPos // remove this client from frontServer's clients array
 	}()
 
 	//listen and handle payload coming from client
@@ -88,6 +92,7 @@ func (client *FrontClient) WsClientHandler(popChan chan int) {
 				return
 			}
 		case message, ok := <-client.FromClient:
+			//for now, send back payload to client… completely useless…
 			err := client.Websocket.WriteJSON(message)
 			if ok && err != nil {
 				log.WithError(err).Warnln(err)

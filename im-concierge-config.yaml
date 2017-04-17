@@ -1,4 +1,4 @@
 irc_server: chat.freenode.net:7000
 irc_room: "#im-concierge-playground"
 irc_user: "im-concierge"
-irc_nickname: "stansab-imc"
+irc_nickname: "im-concierge"

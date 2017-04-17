@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/sapiens-sapide/IM-concierge/imc"
-	m "github.com/sapiens-sapide/IM-concierge/models"
+	"github.com/sapiens-sapide/IM-concierge/concierge"
+	ent "github.com/sapiens-sapide/IM-concierge/entities"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -17,7 +17,7 @@ var (
 	configFile    string
 	pidFile       string
 	signalChannel chan os.Signal // for trapping SIG_HUP
-	cmdConfig     m.ConciergeConfig
+	cmdConfig     ent.ConciergeConfig
 
 	serveCmd = &cobra.Command{
 		Use:   "run",
@@ -25,6 +25,8 @@ var (
 		Run:   run,
 	}
 )
+
+const version = "0.2.0"
 
 func init() {
 	serveCmd.PersistentFlags().StringVarP(&configFile, "config", "c",
@@ -36,10 +38,10 @@ func init() {
 
 	RootCmd.AddCommand(serveCmd)
 	signalChannel = make(chan os.Signal, 1)
-	cmdConfig = m.ConciergeConfig{}
+	cmdConfig = ent.ConciergeConfig{}
 }
 
-func sigHandler() {
+func sigHandler(c *concierge.Concierge) {
 	// handle SIGHUP for reloading the configuration while running
 	signal.Notify(signalChannel, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGKILL)
 
@@ -55,7 +57,7 @@ func sigHandler() {
 			// TODO: reinitialize
 		} else if sig == syscall.SIGTERM || sig == syscall.SIGQUIT || sig == syscall.SIGINT {
 			log.Infof("Shutdown signal caught")
-			err := imc.CareTaker.Backend.Shutdown()
+			err := c.Shutdown()
 			if err != nil {
 				log.WithError(err).Warnf("error when shutingdown backend")
 			}
@@ -68,12 +70,7 @@ func sigHandler() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	err := readConfig(&cmdConfig)
-	if err != nil {
-		log.WithError(err).Fatal("Error while reading config")
-	}
-	imc.Config = cmdConfig
-	imc.Users = make(map[string]m.Recipient)
+
 	// Write out our PID
 	if len(pidFile) > 0 {
 		if f, err := os.Create(pidFile); err == nil {
@@ -93,33 +90,30 @@ func run(cmd *cobra.Command, args []string) {
 	}
 	log.SetFormatter(formatter)
 
+	// Load configuration
+	err := readConfig(&cmdConfig)
 	if err != nil {
-		log.WithError(err).Fatalln("cayley.NewGraph error")
+		log.WithError(err).Fatal("Error while reading config")
 	}
 
-	// init our concierge
-	_, err = imc.NewCareTaker()
+	// Create a concierge
+	concierge, err := concierge.NewConcierge(cmdConfig)
 	if err != nil {
-		log.WithError(err).Fatalf("start of CareTaker failed")
-	}
-	//start IRC handler
-	err = imc.StartIRCservice()
-	if err != nil {
-		log.WithError(err).Fatalf("start of IRCservice failed")
+		log.WithError(err).Fatal("unable to create a concierge")
 	}
 
-	//start http front server
-	err = imc.StartFrontServer()
+	// Start it
+	err = concierge.Start()
 	if err != nil {
-		log.WithError(err).Fatalf("start of front server failed")
+		log.WithError(err).Fatal("unable to start concierge")
 	}
 
 	//wait for system signals
-	sigHandler()
+	sigHandler(concierge)
 }
 
 // ReadConfig which should be called at startup, or when a SIG_HUP is caught
-func readConfig(config *m.ConciergeConfig) error {
+func readConfig(config *ent.ConciergeConfig) error {
 	// load in the main config. Reading from YAML, TOML, JSON, HCL and Java properties config files
 	v := viper.New()
 	v.SetConfigName(configFile) // name of config file (without extension)

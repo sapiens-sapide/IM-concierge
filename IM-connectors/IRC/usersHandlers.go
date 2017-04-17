@@ -1,8 +1,9 @@
-package imc
+package irc
 
+/*
 import (
 	"fmt"
-	m "github.com/sapiens-sapide/IM-concierge/models"
+	. "github.com/sapiens-sapide/IM-concierge/entities"
 	"github.com/thoj/go-ircevent"
 	"strings"
 )
@@ -56,3 +57,4 @@ func HandleWhoReply(e *irc.Event) {
 func HandleLeavingUser(e *irc.Event) {
 
 }
+*/

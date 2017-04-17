@@ -1,18 +1,18 @@
 package backend
 
 import (
-	m "github.com/sapiens-sapide/IM-concierge/models"
+	. "github.com/sapiens-sapide/IM-concierge/entities"
 	"time"
 )
 
 type ConciergeBackend interface {
-	StoreMessage(msg m.Message) error
+	StoreMessage(msg Message) error
 
 	/*
 		ListMessagesByDate returns an array of date ordered messages
 		ranging from now to dateLimit
 	*/
-	ListMessagesByDate(channel string, dateLimit time.Time) ([]m.Message, error)
+	ListMessagesByDate(channel string, dateLimit time.Time) ([]Message, error)
 
 	/*
 		Store room's name to ensure it exists into db
@@ -20,4 +20,7 @@ type ConciergeBackend interface {
 	RegisterRoom(room string) (roomId string, err error) //should returns known users also
 
 	Shutdown() error
+}
+
+type MemoryDB interface {
 }

@@ -1,18 +1,22 @@
-package models
+package entities
 
 import (
 	"github.com/oklog/ulid"
+	"github.com/pborman/uuid"
 	"sort"
 	"time"
 )
 
+// our generic Message representation
 type Message struct {
-	Body    string    `json:"body"`
-	Date    time.Time `json:"date"`
-	From    string    `json:"from"`
-	Id      ulid.ULID `json:"id"`
-	PrevMsg ulid.ULID `json:"prevMsg"`
-	Room    string    `json:"room"`
+	Body     string       `json:"body"`
+	Date     time.Time    `json:"date"`
+	From     string       `json:"from"`    // sender as it appears in the system's protocol
+	FromID   uuid.UUID    `json:"from_id"` // identity to whom sender has been linked to
+	Id       ulid.ULID    `json:"id"`
+	PrevMsg  ulid.ULID    `json:"prevMsg"`
+	Room     string       `json:"room"`
+	Protocol ProtocolType `json:"protocol"` //IRC, jabber, etc.
 }
 
 /*** sort functions for Messages ***/
@@ -28,7 +32,7 @@ func (by By) Sort(messages []Message) {
 	sort.Sort(ps)
 }
 
-// planetSorter joins a By function and a slice of Planets to be sorted.
+// messageSorter joins a By function and a slice of Messages to be sorted.
 type messageSorter struct {
 	messages []Message
 	by       func(m1, m2 *Message) bool // Closure used in the Less method.

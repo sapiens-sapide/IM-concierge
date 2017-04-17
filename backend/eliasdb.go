@@ -9,7 +9,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/oklog/ulid"
-	m "github.com/sapiens-sapide/IM-concierge/models"
+	. "github.com/sapiens-sapide/IM-concierge/entities"
 	"sync"
 	"time"
 )
@@ -22,11 +22,11 @@ type EliasBackend struct {
 
 const billion = 1000000000
 
-func InitEliasBackend() (eb *EliasBackend, err error) {
+func InitEliasBackend(conf EliasConfig) (eb *EliasBackend, err error) {
 
 	eb = &EliasBackend{}
 	// Open or create a graph storage
-	gs, err := graphstorage.NewDiskGraphStorage("../../data", false)
+	gs, err := graphstorage.NewDiskGraphStorage("/Users/stan/data/concierge-db", false)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (eb *EliasBackend) Shutdown() error {
 	return nil
 }
 
-func (eb *EliasBackend) StoreMessage(msg m.Message) error {
+func (eb *EliasBackend) StoreMessage(msg Message) error {
 
 	// Create transaction
 	trans := graph.NewGraphTrans(eb.gm)
@@ -91,12 +91,15 @@ func (eb *EliasBackend) StoreMessage(msg m.Message) error {
 	eb.MsgPointerMux.Lock()
 	defer eb.MsgPointerMux.Unlock()
 	msgNode := data.NewGraphNodeFromMap(map[string]interface{}{
-		"kind":    "message",
-		"key":     msg.Id.String(),
-		"body":    msg.Body,
-		"date":    msg.Date.UnixNano(),
-		"from":    msg.From,
-		"prevMsg": eb.lastMsgPointer.String(),
+		"kind":     "message",
+		"key":      msg.Id.String(),
+		"body":     msg.Body,
+		"date":     msg.Date.UnixNano(),
+		"from":     msg.From,
+		"from_id":  msg.FromID.String(),
+		"prevMsg":  eb.lastMsgPointer.String(),
+		"room":     msg.Room,
+		"protocol": int(msg.Protocol),
 	})
 
 	err := trans.StoreNode("main", msgNode)
@@ -158,9 +161,9 @@ func (eb *EliasBackend) StoreMessage(msg m.Message) error {
 	return nil
 }
 
-func (eb *EliasBackend) ListMessagesByDate(room string, dateLimit time.Time) ([]m.Message, error) {
+func (eb *EliasBackend) ListMessagesByDate(room string, dateLimit time.Time) ([]Message, error) {
 
-	msgList := []m.Message{}
+	msgList := []Message{}
 
 	queryStr := fmt.Sprintf("get message where date > %d with ordering(descending date)", dateLimit.UnixNano())
 	res, err := eql.RunQuery("MessagesByDate", "main", queryStr, eb.gm)
@@ -172,7 +175,7 @@ func (eb *EliasBackend) ListMessagesByDate(room string, dateLimit time.Time) ([]
 		id, _ := ulid.Parse(row[0].(string))
 		prevId, _ := ulid.Parse(row[4].(string))
 
-		msgList = append(msgList, m.Message{
+		msgList = append(msgList, Message{
 			Body:    row[1].(string),
 			Date:    date,
 			Id:      id,
@@ -196,7 +199,7 @@ func (eb *EliasBackend) RegisterRoom(room string) (roomId string, err error) {
 	if res.RowCount() == 0 {
 		roomModel := data.NewGraphNodeFromMap(map[string]interface{}{
 			"kind": "room",
-			"key":  m.NewULID().String(),
+			"key":  NewULID().String(),
 			"name": room,
 		})
 		err = eb.gm.StoreNode("main", roomModel)

@@ -1,4 +1,4 @@
-package models
+package entities
 
 type (
 	AttachmentType uint8
@@ -29,9 +29,12 @@ const (
 )
 
 type ConciergeConfig struct {
-	IRCserver   string `mapstructure:"irc_server"`
-	IRCRoom     string `mapstructure:"irc_room"`
-	IRCUser     string `mapstructure:"irc_user"`
-	IRCNickname string `mapstructure:"irc_nickname"`
-	CayleyAPI   string `mapstructure:"cayley_api_path"`
+	IRCserver   string      `mapstructure:"irc_server"`
+	IRCRoom     string      `mapstructure:"irc_room"`
+	IRCUser     string      `mapstructure:"irc_user"`
+	IRCNickname string      `mapstructure:"irc_nickname"`
+	Backend     EliasConfig `mapstructure:"EliasConfig"`
+}
+
+type EliasConfig struct {
 }
