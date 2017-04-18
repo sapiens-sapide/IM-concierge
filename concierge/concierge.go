@@ -11,12 +11,12 @@ import (
 )
 
 type Concierge struct {
-	Backend      backend.ConciergeBackend //backend to persist & retreive data
-	Config       ConciergeConfig
-	FrontServer  web_api.WebApi      //serve web UI & handle users interactions
-	Hatch        chan Notification   //chan to receive events from componants
-	IMConnectors []im_conn.Connector //connectors handle connections to IM servers
-	Memory       backend.MemoryDB    //backend to handle runtime data
+	Backend     backend.ConciergeBackend //backend to persist & retreive data
+	Config      ConciergeConfig
+	FrontServer web_api.WebApi    //serve web UI & handle users interactions
+	Hatch       chan Notification //chan to receive events from componants
+	IMHandler   im_conn.IMHandler //handle connections to IM servers
+	Memory      backend.MemoryDB  //backend to handle runtime data
 }
 
 // Load configurations, load backends, initialize componants. No service is running at this stage
@@ -33,15 +33,15 @@ func NewConcierge(conf ConciergeConfig) (concierge *Concierge, err error) {
 		Memory:  nil, //TODO
 	}
 
-	// Init Instant Messaging connectors
-	concierge.IMConnectors, err = im_conn.InitConnectors(concierge.Config, concierge.Backend, concierge.Hatch)
+	// Init Instant Messaging handler
+	concierge.IMHandler, err = im_conn.InitIMHandler(concierge.Config, concierge.Backend, concierge.Hatch)
 	if err != nil {
 		log.Warn("Connectors initialization failed")
 		return nil, err
 	}
 
 	// Init front server
-	concierge.FrontServer, err = web_api.InitFrontServer(concierge.Config, concierge.Backend, concierge.Memory)
+	concierge.FrontServer, err = web_api.InitFrontServer(concierge.Config, concierge.Backend, concierge.Memory, concierge.Hatch)
 	if err != nil {
 		log.Warn("Front server initialization failed")
 		return nil, err
@@ -55,13 +55,6 @@ func (c *Concierge) Start() error {
 	err := c.FrontServer.Start()
 	if err != nil {
 		return err
-	}
-
-	for _, connector := range c.IMConnectors {
-		err = connector.Start()
-		if err != nil {
-			return err
-		}
 	}
 
 	go c.eventsBus()
@@ -80,15 +73,21 @@ func (c *Concierge) eventsBus() {
 			if err == nil {
 				go c.FrontServer.BroadcastMessage(payload.([]byte))
 			}
+		case ClientConnect:
+			identity, _ := evt.Payload()
+			connector_key := c.Config.IRCRoom + ":" + c.Config.Concierge.IRCNickname
+			go c.IMHandler.Impersonate(connector_key, identity.(Identity))
+		case ClientPostMessage:
+			connector_key := c.Config.IRCRoom + ":" + c.Config.User.IRCNickname
+			msg, _ := evt.Payload()
+			go c.IMHandler.PostMessageFor(connector_key, msg.(string))
 		}
 	}
 }
 
 func (c *Concierge) Shutdown() error {
 	c.FrontServer.Shutdown()
-	for _, connector := range c.IMConnectors {
-		connector.Shutdown()
-	}
+	c.IMHandler.Shutdown()
 	c.Backend.Shutdown()
 	return nil
 }

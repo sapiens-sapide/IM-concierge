@@ -14,11 +14,12 @@ import (
 )
 
 type IRCconnector struct {
-	IrcConn *ircevt.Connection       // active connection to irc server
-	Rooms   map[string]Room          // IRC rooms currently monitored
-	Backend backend.ConciergeBackend //backend to persist & retreive data
-	Config  ConciergeConfig
-	Hatch   chan Notification // to send events to concierge
+	IrcConn        *ircevt.Connection // active connection to irc server
+	Config         IRCconfig
+	Identity       Identity // user's identity currently impersonated, or im-concierge identity in concierge mode
+	Is_Concierge   bool     // if true user is "im-concierge", not into impersonate mode
+	Backend        backend.ConciergeBackend
+	ConciergeHatch chan Notification
 }
 
 type Room struct {
@@ -33,18 +34,27 @@ type NewIRCMessageEvent struct {
 	Message Message
 }
 
-func InitIRCconnector(conf ConciergeConfig, backend backend.ConciergeBackend, hatch chan Notification) (connector *IRCconnector, err error) {
-	connector = new(IRCconnector)
-	connector.Config = conf
-	connector.Backend = backend
-	connector.Hatch = hatch
-	irccon := ircevt.IRC(conf.IRCNickname, conf.IRCUser)
+func NewIRCconnector(b backend.ConciergeBackend, hatch chan Notification, conf IRCconfig) (conn *IRCconnector, err error) {
+	conn = new(IRCconnector)
+	conn.Config = conf
+	conn.ConciergeHatch = hatch
+	conn.Backend = b
+	return
+}
+
+// Add a connection to an IRC room as "IM-concierge" to monitor it
+func (conn *IRCconnector) AddConcierge(user Identity) (mapkey string, err error) {
+	conn.Identity = user
+	conn.Is_Concierge = true
+
+	irccon := ircevt.IRC(conn.Identity.DisplayName, conn.Identity.Identifier)
 	irccon.VerboseCallbackHandler = false
 	irccon.Debug = false
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *ircevt.Event) {
-		irccon.Join(conf.IRCRoom)
+		log.Infof("joinning room %s", conn.Config.IRCRoom)
+		irccon.Join(conn.Config.IRCRoom)
 	})
 	irccon.AddCallback("353", func(e *ircevt.Event) {
 		//HandleUsersList(irccon, e)
@@ -53,49 +63,52 @@ func InitIRCconnector(conf ConciergeConfig, backend backend.ConciergeBackend, ha
 		//HandleUsersList(irccon, e)
 	})
 	//irccon.AddCallback("352", HandleWhoReply)
-	irccon.AddCallback("PRIVMSG", connector.HandleMessage)
+	irccon.AddCallback("PRIVMSG", conn.HandleMessage)
 
-	connector.IrcConn = irccon
+	err = irccon.Connect(conn.Config.IRCserver)
+	if err != nil {
+		return
+	}
 
+	conn.IrcConn = irccon
+	go conn.IrcConn.Loop()
+
+	mapkey = conn.Config.IRCRoom + ":" + conn.Identity.DisplayName
 	return
 }
 
-func (conn *IRCconnector) Start() error {
-	log.Infoln("going to connect to IRC")
-	err := conn.IrcConn.Connect(conn.Config.IRCserver)
+// Add a new connection to the server/room with an user's identity
+// Return a new connector ready to send message on behalf of user
+func (conn *IRCconnector) Impersonate(user Identity) (mapkey string, err error) {
+	conn.Identity = user
+	conn.Is_Concierge = false
+
+	irccon := ircevt.IRC(conn.Identity.DisplayName, conn.Identity.Identifier)
+	irccon.VerboseCallbackHandler = false
+	irccon.Debug = false
+	irccon.UseTLS = true
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	irccon.AddCallback("001", func(e *ircevt.Event) {
+		log.Infoln("joinning room %s as %s", conn.Config.IRCRoom, conn.Identity.DisplayName)
+		irccon.Join(conn.Config.IRCRoom)
+	})
+
+	err = irccon.Connect(conn.Config.IRCserver)
 	if err != nil {
-		return err
+		return
 	}
-	nick := conn.IrcConn.GetNick()
-	log.Infof("In room %s, as %s", conn.Config.IRCRoom, nick)
+
+	conn.IrcConn = irccon
 	go conn.IrcConn.Loop()
-	return nil
+
+	mapkey = conn.Config.IRCRoom + ":" + conn.Identity.DisplayName
+	return
 }
 
-/*
-func (conn *IRCconnector) RegisterRooms(c *Concierge, rooms []string) error {
-	for _, room := range rooms {
-		if _, ok := c.Rooms[room]; !ok {
-			roomId, err := c.Backend.RegisterRoom(room)
-			if err != nil {
-				return err
-			}
-			room_ulid, _ := ulid.Parse(roomId)
-			c.Rooms[room] = ent.Room{
-				Name:           room,
-				Id:             room_ulid,
-				ConnectedUsers: []*ent.FrontClient{},
-				KnownUsers:     []ent.Identity{},
-			}
-		}
-	}
-	return nil
-}
-*/
-func (conn *IRCconnector) NotifyConcierge(not Notification) error {
+func (conn *IRCconnector) NotifyConcierge(notif Notification) error {
 	timer := time.NewTimer(2 * time.Second)
 	select {
-	case conn.Hatch <- not:
+	case conn.ConciergeHatch <- notif:
 		timer.Stop()
 		return nil
 	case <-timer.C:
@@ -111,7 +124,7 @@ func (nme NewIRCMessageEvent) Payload() (interface{}, error) {
 	return json.Marshal(nme.Message)
 }
 
-func (conn *IRCconnector) Shutdown() error {
+func (conn *IRCconnector) Remove() error {
 	conn.IrcConn.Quit()
 	conn.IrcConn.Disconnect()
 	return nil

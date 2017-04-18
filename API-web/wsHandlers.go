@@ -5,7 +5,8 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	ent "github.com/sapiens-sapide/IM-concierge/entities"
+	. "github.com/sapiens-sapide/IM-concierge/entities"
+	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
 )
@@ -24,8 +25,16 @@ const (
 	maxMessageSize = 512
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+//TODO : handle authentication with websocket proto
+
 // handler for route /ws, in charge of upgrading client to websocket protocol
-func (fs *FrontServer) WsHandler(w http.ResponseWriter, r *http.Request) {
+// if ws upgrade is ok, client is added to frontserver's clients map and concierge is warned
+func (fs *FrontServer) RegisterClient(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.WithError(err)
@@ -33,16 +42,22 @@ func (fs *FrontServer) WsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fs.ClientsMux.Lock()
 	newClient := FrontClient{
-		Websocket:   conn,
-		Identity:    ent.Identity{},
+		Websocket: conn,
+		Identity: Identity{
+			UserId:      uuid.NewV4(),
+			DisplayName: fs.Config.User.IRCNickname,
+			Identifier:  fs.Config.User.IRCUser,
+		}, //TODO
 		FromClient:  make(chan []byte),
 		ToClient:    make(chan []byte),
 		LeaveClient: make(chan bool),
-		ClientPos:   len(fs.Clients),
 	}
-	fs.Clients = append(fs.Clients, &newClient)
+	fs.Clients[newClient.Identity.UserId] = &newClient
+
 	go fs.WsClientHandler(&newClient)
 	fs.ClientsMux.Unlock()
+	newClientEvt := newClientEvent{ClientConnect, newClient.Identity}
+	fs.NotifyConcierge(newClientEvt)
 }
 
 // handles ws communications with connected clients already upgraded to websocket protocol
@@ -54,7 +69,7 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 		close(client.FromClient)
 		close(client.ToClient)
 		client.Websocket.Close()
-		fs.PopClient <- client.ClientPos // remove this client from frontServer's clients array
+		fs.removeClient(client.Identity.UserId)
 	}()
 
 	//listen and handle payload coming from client
@@ -91,13 +106,22 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 				log.WithError(err).Warnln(err)
 				return
 			}
-		case message, ok := <-client.FromClient:
-			//for now, send back payload to client… completely useless…
-			err := client.Websocket.WriteJSON(message)
-			if ok && err != nil {
-				log.WithError(err).Warnln(err)
-				return
+		case message := <-client.FromClient:
+			newMessageClient := newMessageClientEvent{
+				Type:    ClientPostMessage,
+				Message: string(message),
 			}
+			fs.NotifyConcierge(newMessageClient)
+			//for now, send back payload to client… completely useless…
+			/*
+				err := client.Websocket.WriteJSON(message)
+
+				if ok && err != nil {
+					log.WithError(err).Warnln(err)
+					return
+				}
+			*/
+
 		case <-ticker:
 			err := client.Websocket.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second*2))
 			if err != nil {

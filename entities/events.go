@@ -10,6 +10,7 @@ const (
 	ClientLeave                       // A client disconnects from the front end
 	ParticipantJoin                   // A new user joins a room
 	ParticipantLeave                  // An user leaves a room
+	ClientPostMessage
 )
 
 type Notification interface {

@@ -1,11 +1,12 @@
 package web_api
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/websocket"
 	"github.com/sapiens-sapide/IM-concierge/backend"
 	. "github.com/sapiens-sapide/IM-concierge/entities"
+	"github.com/satori/go.uuid"
 	"gopkg.in/gin-gonic/gin.v1"
 	"html/template"
 	"net/http"
@@ -16,16 +17,12 @@ import (
 const defaultMessagesDaysAge = 7 // maximum days to rollback to for unfiltered messages list
 
 var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
 	frWeekDays = [7]string{"Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"}
 )
 
 type WebApi interface {
 	RouteMessagesHdl(ctx *gin.Context)
-	WsHandler(w http.ResponseWriter, r *http.Request)
+	RegisterClient(w http.ResponseWriter, r *http.Request)
 	WsClientHandler(client *FrontClient)
 	Start() error
 	BroadcastMessage([]byte)
@@ -33,20 +30,22 @@ type WebApi interface {
 }
 
 type FrontServer struct {
-	ClientsMux sync.Mutex
-	Clients    []*FrontClient // users currently connected to the front server
-	PopClient  chan int       //chan to receive disconnection order from concierge
-	Backend    backend.ConciergeBackend
-	Memory     backend.MemoryDB
+	ClientsMux     sync.Mutex
+	Clients        map[uuid.UUID]*FrontClient // users currently connected to the front server
+	Backend        backend.ConciergeBackend
+	Memory         backend.MemoryDB
+	ConciergeHatch chan Notification
+	Config         ConciergeConfig
 }
 
-func InitFrontServer(conf ConciergeConfig, b backend.ConciergeBackend, m backend.MemoryDB) (fs *FrontServer, err error) {
+func InitFrontServer(conf ConciergeConfig, b backend.ConciergeBackend, m backend.MemoryDB, hatch chan Notification) (fs *FrontServer, err error) {
 	fs = &FrontServer{
-		ClientsMux: sync.Mutex{},
-		Clients:    []*FrontClient{},
-		PopClient:  make(chan int),
-		Backend:    b,
-		Memory:     m,
+		ClientsMux:     sync.Mutex{},
+		Clients:        make(map[uuid.UUID]*FrontClient),
+		Backend:        b,
+		Memory:         m,
+		Config:         conf,
+		ConciergeHatch: hatch,
 	}
 	return
 }
@@ -76,7 +75,7 @@ func (fs *FrontServer) Start() error {
 	api := router.Group("/messages")
 	api.GET("/", fs.RouteMessagesHdl)
 	api.GET("/ws", func(c *gin.Context) {
-		fs.WsHandler(c.Writer, c.Request)
+		fs.RegisterClient(c.Writer, c.Request)
 	})
 
 	// listens
@@ -92,10 +91,28 @@ func (fs *FrontServer) Start() error {
 }
 
 func (fs *FrontServer) BroadcastMessage(msg []byte) {
-	log.Info(string(msg))
 	for _, client := range fs.Clients {
 		client.ToClient <- msg
 	}
+}
+
+func (fs *FrontServer) NotifyConcierge(not Notification) error {
+	timer := time.NewTimer(2 * time.Second)
+	select {
+	case fs.ConciergeHatch <- not:
+		timer.Stop()
+		return nil
+	case <-timer.C:
+		return errors.New("irc connector timeout when notifying concierge")
+	}
+}
+
+func (fs *FrontServer) removeClient(id uuid.UUID) error {
+	if _, ok := fs.Clients[id]; !ok {
+		return errors.New("client not found")
+	}
+	delete(fs.Clients, id)
+	return nil
 }
 
 func DateToWeekdayString(t time.Time) string {

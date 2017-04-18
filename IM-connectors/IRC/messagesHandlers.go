@@ -24,3 +24,8 @@ func (conn *IRCconnector) HandleMessage(e *irc.Event) {
 	newMsgEvt := NewIRCMessageEvent{NewMessage, msg}
 	conn.NotifyConcierge(newMsgEvt)
 }
+
+func (conn *IRCconnector) PostMessage(msg string) error {
+	conn.IrcConn.Privmsg(conn.Config.IRCRoom, msg)
+	return nil
+}
