@@ -11,7 +11,7 @@ type FrontClient struct {
 	Websocket   *websocket.Conn
 	Identity    Identity
 	FromClient  chan wsEvent
-	ToClient    chan []byte
+	ToClient    chan wsEvent
 	LeaveClient chan bool
 }
 

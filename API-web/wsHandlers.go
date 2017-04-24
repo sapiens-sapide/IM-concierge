@@ -50,7 +50,7 @@ func (fs *FrontServer) RegisterClient(w http.ResponseWriter, r *http.Request) {
 			Identifier:  fs.Config.User.IRCUser,
 		}, //TODO
 		FromClient:  make(chan wsEvent),
-		ToClient:    make(chan []byte),
+		ToClient:    make(chan wsEvent),
 		LeaveClient: make(chan bool),
 	}
 	fs.Clients[newClient.Identity.UserId] = &newClient
@@ -110,7 +110,8 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 		case <-client.LeaveClient:
 			return
 		case message, ok := <-client.ToClient:
-			err := client.Websocket.WriteMessage(websocket.TextMessage, message)
+			b, _ := json.Marshal(message)
+			err := client.Websocket.WriteMessage(websocket.TextMessage, b)
 			if ok && err != nil {
 				log.WithError(err).Warnln(err)
 				return
@@ -118,11 +119,11 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 		case message := <-client.FromClient:
 			switch message.Event {
 			case "connect":
-				newClientEvt := clientEvent{ImpersonnateUser, client.Identity}
+				newClientEvt := clientEvent{ImpersonateUser, client.Identity}
 				fs.NotifyConcierge(newClientEvt)
 			case "disconnect":
 				// TODO: for now, only remove user from the config file
-				userQuitEvent := clientEvent{StopImpersonnateUser, client.Identity}
+				userQuitEvent := clientEvent{StopImpersonateUser, client.Identity}
 				fs.NotifyConcierge(userQuitEvent)
 			case "message":
 				newMessageClient := newMessageClientEvent{

@@ -66,6 +66,13 @@ func (imh *InstantMessagingHandler) Impersonate(connector_key string, user Ident
 	if connector, ok := imh.Connectors[connector_key]; ok {
 		switch c := connector.(type) {
 		case *irc.IRCconnector:
+			// check if this user is not already impersonated
+			user_conn_key := c.Config.IRCRoom + ":" + user.DisplayName
+			if _, ok := imh.Connectors[user_conn_key]; ok {
+				ime := IMEvent{ImpersonateFailed, user.UserId.String()}
+				imh.ConciergeHatch <- ime
+				return errors.New(fmt.Sprintf("connector « %s » already registred", user_conn_key))
+			}
 			new_connector, _ := irc.NewIRCconnector(c.Backend, c.ConciergeHatch, IRCconfig{
 				IRCserver: c.Config.IRCserver,
 				IRCRoom:   c.Config.IRCRoom,
@@ -79,6 +86,7 @@ func (imh *InstantMessagingHandler) Impersonate(connector_key string, user Ident
 			return nil
 
 		default:
+
 			return errors.New(fmt.Sprintf("connector « %s » has an unknown type", connector_key))
 		}
 
@@ -111,4 +119,17 @@ func (imh *InstantMessagingHandler) Shutdown() error {
 		connector.Close()
 	}
 	return nil
+}
+
+type IMEvent struct {
+	Type  EventType `json:"type"`
+	Event string    `json:"payload"`
+}
+
+func (ime IMEvent) EventType() EventType {
+	return ime.Type
+}
+
+func (ime IMEvent) Payload() (interface{}, error) {
+	return ime.Event, nil
 }

@@ -8,6 +8,7 @@ import (
 	im_conn "github.com/sapiens-sapide/IM-concierge/IM-connectors"
 	"github.com/sapiens-sapide/IM-concierge/backend"
 	. "github.com/sapiens-sapide/IM-concierge/entities"
+	"github.com/satori/go.uuid"
 )
 
 type Concierge struct {
@@ -19,7 +20,7 @@ type Concierge struct {
 	Memory      backend.MemoryDB  //backend to handle runtime data
 }
 
-// Load configurations, load backends, initialize componants. No service is running at this stage
+// Load configurations, load backends, initialize componants.
 func NewConcierge(conf ConciergeConfig) (concierge *Concierge, err error) {
 	be, err := backend.InitEliasBackend(conf.Backend)
 	if err != nil {
@@ -73,7 +74,7 @@ func (c *Concierge) eventsBus() {
 			if err == nil {
 				go c.FrontServer.BroadcastMessage(payload.([]byte))
 			}
-		case ImpersonnateUser:
+		case ImpersonateUser:
 			identity, _ := evt.Payload()
 			connector_key := c.Config.IRCRoom + ":" + c.Config.Concierge.IRCNickname
 			go c.IMHandler.Impersonate(connector_key, identity.(Identity))
@@ -81,10 +82,18 @@ func (c *Concierge) eventsBus() {
 			connector_key := c.Config.IRCRoom + ":" + c.Config.User.IRCNickname
 			msg, _ := evt.Payload()
 			go c.IMHandler.PostMessageFor(connector_key, msg.(string))
-		case ClientLeave, StopImpersonnateUser:
+		case ClientLeave, StopImpersonateUser:
 			identity, _ := evt.Payload()
 			connector_key := c.Config.IRCRoom + ":" + identity.(Identity).DisplayName
 			c.IMHandler.Remove(connector_key)
+		case ClientImpersonated:
+			payload, _ := evt.Payload()
+			client_id, _ := uuid.FromString(payload.(string))
+			go c.FrontServer.NotifyClient(client_id, "connected", "")
+		case ImpersonateFailed:
+			payload, _ := evt.Payload()
+			client_id, _ := uuid.FromString(payload.(string))
+			go c.FrontServer.NotifyClient(client_id, "impersonate failed", "")
 		}
 	}
 }

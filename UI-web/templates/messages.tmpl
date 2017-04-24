@@ -4,23 +4,46 @@
     <meta charset="UTF-8">
     <title>Last messages</title>
     <link rel="stylesheet" type="text/css" href="/static/assets/SemanticUI/semantic.css">
+    <script src="/static/assets/jquery.min.js"></script>
+    <script src="/static/assets/SemanticUI/semantic.js"></script>
     <script src="/static/scripts/messages.js"></script>
 </head>
 <body>
-    <div class="ui fluid container">
-    <div class="ui feed" id="div-feed">
-    {{range .}}
-           <div class="event" style="font-style: italic;">
-                <div class="content">
-                    <div class="summary">
-                        <div class="date">{{weekdayDateStr .Date}}</div>
-                        <a class="user">{{.From}}&nbsp;:&nbsp;</a>
-                        {{.Body}}
+<div class="ui visible left sidebar vertical">
+    <form class="ui form segment">
+      <div class="ui dimmer">
+        <div class="ui text loader">Connexion en cours</div>
+      </div>
+      <div class="inline field">
+        <div class="ui toggle checkbox">
+          <input type="checkbox" name="connexion">
+          <label>Connexion</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea rows="5"></textarea>
+      </div>
+      <button class="ui button" type="submit">Envoyer</button>
+    </form>
+  </div>
+  <div class="pusher">
+        <div class="ui fluid container">
+        <div class="ui feed" id="div-feed">
+        {{range .}}
+               <div class="event" style="font-style: italic;">
+                    <div class="content">
+                        <div class="summary">
+                            <div class="date">{{weekdayDateStr .Date}}</div>
+                            <a class="user">{{.From}}&nbsp;:&nbsp;</a>
+                            {{.Body}}
+                        </div>
                     </div>
                 </div>
-            </div>
-    {{end}}
-    </div>
-    </div>
+        {{end}}
+        </div>
+        </div>
+  </div>
+
 </body>
 </html>

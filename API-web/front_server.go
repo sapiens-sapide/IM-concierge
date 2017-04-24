@@ -27,6 +27,7 @@ type WebApi interface {
 	Start() error
 	BroadcastMessage([]byte)
 	Shutdown() error
+	NotifyClient(client_id uuid.UUID, event, payload string) error // handle a notification from concierge to a front client
 }
 
 type FrontServer struct {
@@ -92,7 +93,10 @@ func (fs *FrontServer) Start() error {
 
 func (fs *FrontServer) BroadcastMessage(msg []byte) {
 	for _, client := range fs.Clients {
-		client.ToClient <- msg
+		client.ToClient <- wsEvent{
+			Event:   "message",
+			Payload: string(msg),
+		}
 	}
 }
 
@@ -105,6 +109,18 @@ func (fs *FrontServer) NotifyConcierge(notif Notification) error {
 	case <-timer.C:
 		return errors.New("irc connector timeout when notifying concierge")
 	}
+}
+
+func (fs *FrontServer) NotifyClient(client_id uuid.UUID, event, payload string) error {
+	if client, ok := fs.Clients[client_id]; ok {
+		client.ToClient <- wsEvent{
+			Event:   event,
+			Payload: payload,
+		}
+		return nil
+	}
+
+	return errors.New("unknown client id")
 }
 
 func (fs *FrontServer) removeClient(id uuid.UUID) error {

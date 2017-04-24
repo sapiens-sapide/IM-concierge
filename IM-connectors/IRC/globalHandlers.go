@@ -34,6 +34,11 @@ type NewIRCMessageEvent struct {
 	Message Message
 }
 
+type HasJoinIRCEvent struct {
+	Type    EventType
+	Message string
+}
+
 func NewIRCconnector(b backend.ConciergeBackend, hatch chan Notification, conf IRCconfig) (conn *IRCconnector, err error) {
 	conn = new(IRCconnector)
 	conn.Config = conf
@@ -52,17 +57,8 @@ func (conn *IRCconnector) AddConcierge(user Identity) (mapkey string, err error)
 	irccon.Debug = false
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	irccon.AddCallback("001", func(e *ircevt.Event) {
-		log.Infof("joinning room %s", conn.Config.IRCRoom)
-		irccon.Join(conn.Config.IRCRoom)
-	})
-	irccon.AddCallback("353", func(e *ircevt.Event) {
-		//HandleUsersList(irccon, e)
-	})
-	irccon.AddCallback("JOIN", func(e *ircevt.Event) {
-		//HandleUsersList(irccon, e)
-	})
-	//irccon.AddCallback("352", HandleWhoReply)
+
+	irccon.AddCallback("353", conn.hasJoin)
 	irccon.AddCallback("PRIVMSG", conn.HandleMessage)
 
 	err = irccon.Connect(conn.Config.IRCserver)
@@ -71,6 +67,8 @@ func (conn *IRCconnector) AddConcierge(user Identity) (mapkey string, err error)
 	}
 
 	conn.IrcConn = irccon
+	log.Infof("joinning room %s", conn.Config.IRCRoom)
+	irccon.Join(conn.Config.IRCRoom)
 	go conn.IrcConn.Loop()
 
 	mapkey = conn.Config.IRCRoom + ":" + conn.Identity.DisplayName
@@ -88,10 +86,8 @@ func (conn *IRCconnector) Impersonate(user Identity) (mapkey string, err error) 
 	irccon.Debug = false
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	irccon.AddCallback("001", func(e *ircevt.Event) {
-		log.Infof("joinning room %s as %s", conn.Config.IRCRoom, conn.Identity.DisplayName)
-		irccon.Join(conn.Config.IRCRoom)
-	})
+
+	irccon.AddCallback("353", conn.hasJoin)
 
 	err = irccon.Connect(conn.Config.IRCserver)
 	if err != nil {
@@ -99,6 +95,8 @@ func (conn *IRCconnector) Impersonate(user Identity) (mapkey string, err error) 
 	}
 
 	conn.IrcConn = irccon
+	log.Infof("joinning room %s as %s", conn.Config.IRCRoom, conn.Identity.DisplayName)
+	irccon.Join(conn.Config.IRCRoom)
 	go conn.IrcConn.Loop()
 
 	mapkey = conn.Config.IRCRoom + ":" + conn.Identity.DisplayName
@@ -124,8 +122,24 @@ func (nme NewIRCMessageEvent) Payload() (interface{}, error) {
 	return json.Marshal(nme.Message)
 }
 
+func (hje HasJoinIRCEvent) EventType() EventType {
+	return hje.Type
+}
+
+func (hje HasJoinIRCEvent) Payload() (interface{}, error) {
+	return hje.Message, nil
+}
+
 func (conn *IRCconnector) Close() error {
 	conn.IrcConn.Quit()
 	conn.IrcConn.Disconnect()
 	return nil
+}
+
+func (conn *IRCconnector) hasJoin(e *ircevt.Event) {
+	if !conn.Is_Concierge {
+		//create an event and send it to concierge
+		hasJoinEvt := HasJoinIRCEvent{ClientImpersonated, conn.Identity.UserId.String()}
+		conn.NotifyConcierge(hasJoinEvt)
+	}
 }
