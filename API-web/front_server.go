@@ -96,10 +96,10 @@ func (fs *FrontServer) BroadcastMessage(msg []byte) {
 	}
 }
 
-func (fs *FrontServer) NotifyConcierge(not Notification) error {
+func (fs *FrontServer) NotifyConcierge(notif Notification) error {
 	timer := time.NewTimer(2 * time.Second)
 	select {
-	case fs.ConciergeHatch <- not:
+	case fs.ConciergeHatch <- notif:
 		timer.Stop()
 		return nil
 	case <-timer.C:

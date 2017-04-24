@@ -73,7 +73,7 @@ func (c *Concierge) eventsBus() {
 			if err == nil {
 				go c.FrontServer.BroadcastMessage(payload.([]byte))
 			}
-		case ClientConnect:
+		case ImpersonnateUser:
 			identity, _ := evt.Payload()
 			connector_key := c.Config.IRCRoom + ":" + c.Config.Concierge.IRCNickname
 			go c.IMHandler.Impersonate(connector_key, identity.(Identity))
@@ -81,6 +81,10 @@ func (c *Concierge) eventsBus() {
 			connector_key := c.Config.IRCRoom + ":" + c.Config.User.IRCNickname
 			msg, _ := evt.Payload()
 			go c.IMHandler.PostMessageFor(connector_key, msg.(string))
+		case ClientLeave, StopImpersonnateUser:
+			identity, _ := evt.Payload()
+			connector_key := c.Config.IRCRoom + ":" + identity.(Identity).DisplayName
+			c.IMHandler.Remove(connector_key)
 		}
 	}
 }

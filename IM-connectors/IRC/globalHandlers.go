@@ -89,7 +89,7 @@ func (conn *IRCconnector) Impersonate(user Identity) (mapkey string, err error) 
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *ircevt.Event) {
-		log.Infoln("joinning room %s as %s", conn.Config.IRCRoom, conn.Identity.DisplayName)
+		log.Infof("joinning room %s as %s", conn.Config.IRCRoom, conn.Identity.DisplayName)
 		irccon.Join(conn.Config.IRCRoom)
 	})
 
@@ -124,7 +124,7 @@ func (nme NewIRCMessageEvent) Payload() (interface{}, error) {
 	return json.Marshal(nme.Message)
 }
 
-func (conn *IRCconnector) Remove() error {
+func (conn *IRCconnector) Close() error {
 	conn.IrcConn.Quit()
 	conn.IrcConn.Disconnect()
 	return nil

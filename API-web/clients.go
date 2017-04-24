@@ -10,21 +10,21 @@ import (
 type FrontClient struct {
 	Websocket   *websocket.Conn
 	Identity    Identity
-	FromClient  chan []byte
+	FromClient  chan wsEvent
 	ToClient    chan []byte
 	LeaveClient chan bool
 }
 
-type newClientEvent struct {
+type clientEvent struct {
 	Type   EventType
 	Client Identity
 }
 
-func (nce newClientEvent) EventType() EventType {
+func (nce clientEvent) EventType() EventType {
 	return nce.Type
 }
 
-func (nce newClientEvent) Payload() (interface{}, error) {
+func (nce clientEvent) Payload() (interface{}, error) {
 	return nce.Client, nil
 }
 
@@ -39,4 +39,9 @@ func (nmce newMessageClientEvent) EventType() EventType {
 
 func (nmce newMessageClientEvent) Payload() (interface{}, error) {
 	return nmce.Message, nil
+}
+
+type wsEvent struct {
+	Event   string `json:"event"`
+	Payload string `json:"payload"`
 }

@@ -11,6 +11,8 @@ const (
 	ParticipantJoin                   // A new user joins a room
 	ParticipantLeave                  // An user leaves a room
 	ClientPostMessage
+	ImpersonnateUser     // An user wants concierge to impersonnate him into a room
+	StopImpersonnateUser // An user wants concierge to disconnect him from a room
 )
 
 type Notification interface {

@@ -13,13 +13,14 @@ type IMHandler interface {
 	Impersonate(string, Identity) error //for now, IRC assumed
 	AddConcierge() error                //for now, IRC assumed
 	PostMessageFor(string, string) error
+	Remove(connector_key string) error // close the underlying IM connection
 }
 
 type IMconnector interface {
 	Impersonate(Identity) (string, error)
 	AddConcierge(Identity) (string, error)
 	NotifyConcierge(Notification) error
-	Remove() error
+	Close() error
 }
 
 // handle IRC only for now. TODO
@@ -97,9 +98,17 @@ func (imh *InstantMessagingHandler) PostMessageFor(connector_key string, msg str
 	return errors.New(fmt.Sprintf("connector « %s » not registred", connector_key))
 }
 
+func (imh *InstantMessagingHandler) Remove(connector_key string) error {
+	if connector, ok := imh.Connectors[connector_key]; ok {
+		connector.Close()
+		delete(imh.Connectors, connector_key)
+	}
+	return errors.New(fmt.Sprintf("connector « %s » not registred", connector_key))
+}
+
 func (imh *InstantMessagingHandler) Shutdown() error {
 	for _, connector := range imh.Connectors {
-		connector.Remove()
+		connector.Close()
 	}
 	return nil
 }

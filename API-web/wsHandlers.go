@@ -3,6 +3,7 @@ package web_api
 
 import (
 	"bytes"
+	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	. "github.com/sapiens-sapide/IM-concierge/entities"
@@ -48,7 +49,7 @@ func (fs *FrontServer) RegisterClient(w http.ResponseWriter, r *http.Request) {
 			DisplayName: fs.Config.User.IRCNickname,
 			Identifier:  fs.Config.User.IRCUser,
 		}, //TODO
-		FromClient:  make(chan []byte),
+		FromClient:  make(chan wsEvent),
 		ToClient:    make(chan []byte),
 		LeaveClient: make(chan bool),
 	}
@@ -56,8 +57,7 @@ func (fs *FrontServer) RegisterClient(w http.ResponseWriter, r *http.Request) {
 
 	go fs.WsClientHandler(&newClient)
 	fs.ClientsMux.Unlock()
-	newClientEvt := newClientEvent{ClientConnect, newClient.Identity}
-	fs.NotifyConcierge(newClientEvt)
+
 }
 
 // handles ws communications with connected clients already upgraded to websocket protocol
@@ -69,6 +69,8 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 		close(client.FromClient)
 		close(client.ToClient)
 		client.Websocket.Close()
+		clientQuitEvent := clientEvent{ClientLeave, client.Identity}
+		fs.NotifyConcierge(clientQuitEvent)
 		fs.removeClient(client.Identity.UserId)
 	}()
 
@@ -86,9 +88,16 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 				_, err := buf.ReadFrom(message)
 				if err != nil {
 					log.WithError(err).Warnln(err)
-					//todo
+					client.LeaveClient <- true
 				} else {
-					client.FromClient <- buf.Bytes()
+					var evt wsEvent
+					err := json.Unmarshal(buf.Bytes(), &evt)
+					if err != nil {
+						log.Warn("unable to unmarshall ws event")
+						continue
+					} else {
+						client.FromClient <- evt
+					}
 				}
 			}
 		}
@@ -107,21 +116,23 @@ func (fs *FrontServer) WsClientHandler(client *FrontClient) {
 				return
 			}
 		case message := <-client.FromClient:
-			newMessageClient := newMessageClientEvent{
-				Type:    ClientPostMessage,
-				Message: string(message),
-			}
-			fs.NotifyConcierge(newMessageClient)
-			//for now, send back payload to client… completely useless…
-			/*
-				err := client.Websocket.WriteJSON(message)
-
-				if ok && err != nil {
-					log.WithError(err).Warnln(err)
-					return
+			switch message.Event {
+			case "connect":
+				newClientEvt := clientEvent{ImpersonnateUser, client.Identity}
+				fs.NotifyConcierge(newClientEvt)
+			case "disconnect":
+				// TODO: for now, only remove user from the config file
+				userQuitEvent := clientEvent{StopImpersonnateUser, client.Identity}
+				fs.NotifyConcierge(userQuitEvent)
+			case "message":
+				newMessageClient := newMessageClientEvent{
+					Type:    ClientPostMessage,
+					Message: message.Payload,
 				}
-			*/
-
+				fs.NotifyConcierge(newMessageClient)
+			default:
+				log.Warnf("unknown event <%s> from client %s", message.Event, client.Identity.UserId.String())
+			}
 		case <-ticker:
 			err := client.Websocket.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second*2))
 			if err != nil {
