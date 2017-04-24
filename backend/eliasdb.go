@@ -26,7 +26,7 @@ func InitEliasBackend(conf EliasConfig) (eb *EliasBackend, err error) {
 
 	eb = &EliasBackend{}
 	// Open or create a graph storage
-	gs, err := graphstorage.NewDiskGraphStorage("/Users/stan/data/concierge-db", false)
+	gs, err := graphstorage.NewDiskGraphStorage(conf.DataPath, false)
 	if err != nil {
 		return nil, err
 	}

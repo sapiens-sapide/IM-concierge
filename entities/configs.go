@@ -38,10 +38,11 @@ type ConciergeConfig struct {
 	IRCRoom   string      `mapstructure:"irc_room"`
 	Concierge IRCidentity `mapstructure:"concierge"`
 	User      IRCidentity `mapstructure:"user"`
-	Backend   EliasConfig `mapstructure:"EliasConfig"`
+	Backend   EliasConfig `mapstructure:"elias_config"`
 }
 
 type EliasConfig struct {
+	DataPath string `mapstructure:"data_path"`
 }
 
 type IRCconfig struct {

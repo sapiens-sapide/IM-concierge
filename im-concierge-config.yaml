@@ -6,3 +6,5 @@ concierge:
 user:
   irc_user: "Stan-test"
   irc_nickname: "stansab-test"
+elias_config:
+  data_path: "/Users/stan/data/concierge-db"
