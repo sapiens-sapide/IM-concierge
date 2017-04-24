@@ -34,11 +34,12 @@ type IRCidentity struct {
 }
 
 type ConciergeConfig struct {
-	IRCserver string      `mapstructure:"irc_server"`
-	IRCRoom   string      `mapstructure:"irc_room"`
-	Concierge IRCidentity `mapstructure:"concierge"`
-	User      IRCidentity `mapstructure:"user"`
-	Backend   EliasConfig `mapstructure:"elias_config"`
+	IRCserver   string      `mapstructure:"irc_server"`
+	IRCRoom     string      `mapstructure:"irc_room"`
+	Concierge   IRCidentity `mapstructure:"concierge"`
+	User        IRCidentity `mapstructure:"user"`
+	Backend     EliasConfig `mapstructure:"elias_config"`
+	FrontServer FrontConfig `mapstructure:"front_server"`
 }
 
 type EliasConfig struct {
@@ -48,4 +49,8 @@ type EliasConfig struct {
 type IRCconfig struct {
 	IRCserver string `mapstructure:"irc_server"`
 	IRCRoom   string `mapstructure:"irc_room"`
+}
+
+type FrontConfig struct {
+	Listen string `mapstructure:"listen_host"`
 }

@@ -80,9 +80,8 @@ func (fs *FrontServer) Start() error {
 	})
 
 	// listens
-	addr := "localhost:8080"
 	go func() {
-		err = router.Run(addr)
+		err = router.Run(fs.Config.FrontServer.Listen)
 		if err != nil {
 			log.WithError(err).Warn("unable to start gin server")
 		}
