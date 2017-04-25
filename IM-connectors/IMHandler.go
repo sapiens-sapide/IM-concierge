@@ -38,6 +38,7 @@ func InitIMHandler(conf ConciergeConfig, backend backend.ConciergeBackend, hatch
 	imh.ConciergeHatch = hatch
 	imh.Connectors = make(map[string]IMconnector)
 	//only one IRC concierge for now
+	imh.Backend.RegisterRoom(imh.Config.IRCRoom)
 	imh.AddConcierge()
 	return
 }
